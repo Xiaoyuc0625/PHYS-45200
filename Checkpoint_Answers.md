@@ -20,6 +20,8 @@ Demonstrate that your UI successfully passes variables to the quantum backend.
 
 ![A 2-qubit circuit with measurements](photos/Two-qubit_circuit_measured.png)
 
+*Figure: a 2-qubit circuit with measurements.*
+
 ![`Ry(θ)` logic gate](photos/Ry_gate.png)
 
 The screenshot of the circuit and the resulting histogram is shown above. A y-rotation gate `Ry(θ)` to `q0` is applied with the value of `θ` being adjustable, followed by a CNOT (`q0 → q1`) gate. Doing a logic check by sliding the phase to `θ = π` gives the measured quantum state of `|11⟩` with `100%` probability, which is expected according to the logic gate `Ry(θ)`, and it proves that my backend is receiving the slider value correctly.
