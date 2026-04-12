@@ -5,7 +5,7 @@ from typing import Dict, Iterable, List, Tuple
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
-from qiskit.circuit import Parameter
+from qiskit.circuit import Gate, Parameter
 from qiskit.quantum_info import Statevector
 from qiskit_aer import AerSimulator
 
@@ -17,6 +17,47 @@ _STATEVEC_SIM = AerSimulator(method="statevector")
 
 class BackendError(ValueError):
     """Raised when an invalid circuit is submitted to the backend."""
+
+
+@dataclass
+class ProtocolStep:
+    number: int
+    title: str
+    description: str
+    state_circuit: QuantumCircuit
+    display_circuit: QuantumCircuit
+    statevector_expression: str
+    statevector_latex: str
+    measurement_counts: Dict[str, int]
+
+
+@dataclass
+class TeleportationResult:
+    title: str
+    input_state_latex: str
+    circuit: QuantumCircuit
+    full_counts: Dict[str, int]
+    bob_counts: Dict[str, int]
+    expected_bob_probabilities: Dict[str, float]
+
+
+@dataclass
+class LongDistanceCNOTResult:
+    target_circuit: QuantumCircuit
+    routed_swap_circuit: QuantumCircuit
+    decomposed_circuit: QuantumCircuit
+    swap_count: int
+    cnot_count: int
+
+
+@dataclass
+class HubbardReport:
+    trotter_circuit: QuantumCircuit
+    noninteracting_taus: List[float]
+    noninteracting_site2_probs: List[float]
+    strong_taus: List[float]
+    strong_remain_probs: List[float]
+    strong_transition_probs: List[float]
 
 
 
@@ -66,6 +107,35 @@ def nonzero_amplitudes(statevector: Statevector, tol: float = 1e-10) -> List[Tup
     return out
 
 
+def display_bitstring(bitstring: str) -> str:
+    """Convert Qiskit state/count labels to q0...qN display order."""
+    return bitstring[::-1]
+
+
+def statevector_expression(circuit: QuantumCircuit) -> str:
+    terms = [
+        f"|{display_bitstring(bitstring)}>"
+        for bitstring, _ in nonzero_amplitudes(statevector_after(circuit))
+    ]
+    return "( " + " + ".join(terms) + " ) / sqrt(2)"
+
+
+def statevector_latex(circuit: QuantumCircuit) -> str:
+    terms = [
+        rf"\left|{display_bitstring(bitstring)}\right\rangle"
+        for bitstring, _ in nonzero_amplitudes(statevector_after(circuit))
+    ]
+    return r"\frac{1}{\sqrt{2}}\left(" + " + ".join(terms) + r"\right)"
+
+
+def measurement_counts_1024(circuit: QuantumCircuit) -> Dict[str, int]:
+    counts = run_circuit(circuit, shots=DEFAULT_SHOTS)
+    return {
+        display_bitstring(bitstring): count
+        for bitstring, count in sorted(counts.items())
+    }
+
+
 
 def bell_param_circuit(theta: float) -> QuantumCircuit:
     qc = QuantumCircuit(2, 2)
@@ -93,11 +163,12 @@ def prepare_superposition_201_425() -> QuantumCircuit:
     Qiskit uses little-endian ordering in statevector labels. We prepare basis states
     corresponding to bitstrings 0011001001 (= 201) and 0110101001 (= 425).
     """
-    sv = np.zeros(2**10, dtype=complex)
-    sv[201] = 1 / np.sqrt(2)
-    sv[425] = 1 / np.sqrt(2)
     qc = QuantumCircuit(10)
-    qc.initialize(sv, range(10))
+    qc.x([2, 3, 6, 9])
+    qc.h(1)
+    qc.cx(1, 3)
+    qc.cx(1, 4)
+    qc.barrier(label="|201> + |425>")
     return qc
 
 
@@ -117,6 +188,70 @@ def entangling_chain_inverse() -> QuantumCircuit:
     return qc
 
 
+def q14_display_circuit(include_chain: bool = False, include_inverse: bool = False) -> QuantumCircuit:
+    """Return the circuit shown for Q1.4."""
+    qc = QuantumCircuit(10, 10)
+    qc.compose(prepare_superposition_201_425(), inplace=True)
+    if include_chain:
+        qc.barrier(label="9 CNOT chain")
+        for i in range(9):
+            qc.cx(i, i + 1)
+    if include_inverse:
+        qc.barrier(label="inverse chain")
+        for i in reversed(range(9)):
+            qc.cx(i, i + 1)
+    qc.measure(range(10), range(10))
+    return qc
+
+
+def q14_protocol_steps() -> List[ProtocolStep]:
+    prep = prepare_superposition_201_425()
+    chain = entangling_chain()
+    recover = entangling_chain_inverse()
+
+    step1 = prep
+    step2 = prep.compose(chain)
+    step3 = prep.compose(chain).compose(recover)
+
+    step_data = [
+        (
+            1,
+            "Prepare the initial superposition",
+            r"Initialize all 10 qubits in $2^{-1/2}(|0011001001\rangle + |0110101001\rangle)$.",
+            step1,
+            q14_display_circuit(),
+        ),
+        (
+            2,
+            "Apply the 9-gate CNOT chain",
+            r"Apply $\mathrm{CNOT}(q_0 \rightarrow q_1), \mathrm{CNOT}(q_1 \rightarrow q_2), \ldots, \mathrm{CNOT}(q_8 \rightarrow q_9)$.",
+            step2,
+            q14_display_circuit(include_chain=True),
+        ),
+        (
+            3,
+            "Reverse the chain and recover the state",
+            r"Apply the inverse sequence in reverse order, from $\mathrm{CNOT}(q_8 \rightarrow q_9)$ back to $\mathrm{CNOT}(q_0 \rightarrow q_1)$.",
+            step3,
+            q14_display_circuit(include_chain=True, include_inverse=True),
+        ),
+    ]
+
+    return [
+        ProtocolStep(
+            number=number,
+            title=title,
+            description=description,
+            state_circuit=state_circuit,
+            display_circuit=display_circuit,
+            statevector_expression=statevector_expression(state_circuit),
+            statevector_latex=statevector_latex(state_circuit),
+            measurement_counts=measurement_counts_1024(state_circuit),
+        )
+        for number, title, description, state_circuit, display_circuit in step_data
+    ]
+
+
 
 def long_distance_cnot_q0_q4_linear() -> QuantumCircuit:
     """Implements CNOT(q0 -> q4) on a linear chain 0-1-2-3-4 using SWAP routing."""
@@ -130,6 +265,56 @@ def long_distance_cnot_q0_q4_linear() -> QuantumCircuit:
     qc.swap(3, 4)
     qc.measure(range(5), range(5))
     return qc
+
+
+def q22_target_cnot_circuit() -> QuantumCircuit:
+    qc = QuantumCircuit(5)
+    qc.cx(0, 4)
+    return qc
+
+
+def q22_routed_swap_circuit(measure: bool = False) -> QuantumCircuit:
+    qc = QuantumCircuit(5, 5 if measure else 0)
+    qc.swap(3, 4)
+    qc.swap(2, 3)
+    qc.swap(1, 2)
+    qc.cx(0, 1)
+    qc.swap(1, 2)
+    qc.swap(2, 3)
+    qc.swap(3, 4)
+    if measure:
+        qc.measure(range(5), range(5))
+    return qc
+
+
+def append_swap_decomposed(qc: QuantumCircuit, q_left: int, q_right: int) -> None:
+    qc.cx(q_left, q_right)
+    qc.cx(q_right, q_left)
+    qc.cx(q_left, q_right)
+
+
+def q22_decomposed_cnot_circuit(measure: bool = False) -> QuantumCircuit:
+    qc = QuantumCircuit(5, 5 if measure else 0)
+    append_swap_decomposed(qc, 3, 4)
+    append_swap_decomposed(qc, 2, 3)
+    append_swap_decomposed(qc, 1, 2)
+    qc.cx(0, 1)
+    append_swap_decomposed(qc, 1, 2)
+    append_swap_decomposed(qc, 2, 3)
+    append_swap_decomposed(qc, 3, 4)
+    if measure:
+        qc.measure(range(5), range(5))
+    return qc
+
+
+def q22_long_distance_cnot_result() -> LongDistanceCNOTResult:
+    return LongDistanceCNOTResult(
+        target_circuit=q22_target_cnot_circuit(),
+        routed_swap_circuit=q22_routed_swap_circuit(),
+        decomposed_circuit=q22_decomposed_cnot_circuit(),
+        swap_count=6,
+        cnot_count=19,
+    )
 
 
 
@@ -167,6 +352,45 @@ def teleportation_circuit(alpha: complex, beta: complex, measure_alice: bool = T
 def bob_measurement_distribution(alpha: complex, beta: complex, shots: int = DEFAULT_SHOTS) -> Dict[str, int]:
     qc = teleportation_circuit(alpha, beta, measure_alice=True)
     return run_circuit(qc, shots=shots)
+
+
+def bob_marginal_counts(counts: Dict[str, int]) -> Dict[str, int]:
+    bob_counts = {"0": 0, "1": 0}
+    for bitstring, count in counts.items():
+        compact = bitstring.replace(" ", "")
+        bob_bit = compact[0]
+        bob_counts[bob_bit] += count
+    return bob_counts
+
+
+def q21_teleportation_result() -> TeleportationResult:
+    alpha = 2 / np.sqrt(5)
+    beta = 1 / np.sqrt(5)
+    circuit = teleportation_circuit(alpha, beta, measure_alice=True)
+    full_counts = run_circuit(circuit, shots=DEFAULT_SHOTS)
+    return TeleportationResult(
+        title="Q2.1 Teleportation of (2|0> + |1>) / sqrt(5)",
+        input_state_latex=r"\left|q_0\right\rangle = \frac{1}{\sqrt{5}}\left(2\left|0\right\rangle + \left|1\right\rangle\right)",
+        circuit=circuit,
+        full_counts=full_counts,
+        bob_counts=bob_marginal_counts(full_counts),
+        expected_bob_probabilities={"0": 4 / 5, "1": 1 / 5},
+    )
+
+
+def q23_teleportation_zero_result() -> TeleportationResult:
+    alpha = 1.0
+    beta = 0.0
+    circuit = teleportation_circuit(alpha, beta, measure_alice=True)
+    full_counts = run_circuit(circuit, shots=DEFAULT_SHOTS)
+    return TeleportationResult(
+        title="Q2.3 Teleportation statistics for input |0>",
+        input_state_latex=r"\left|q_0\right\rangle = \left|0\right\rangle",
+        circuit=circuit,
+        full_counts=full_counts,
+        bob_counts=bob_marginal_counts(full_counts),
+        expected_bob_probabilities={"0": 1.0, "1": 0.0},
+    )
 
 
 
@@ -220,6 +444,30 @@ def one_trotter_step_hubbard(U: float, J: float, dt: float, measure: bool = Fals
     return qc
 
 
+def symbolic_one_trotter_step_hubbard() -> QuantumCircuit:
+    U = Parameter("U")
+    J = Parameter("J")
+    dt = Parameter("Δt")
+    qc = QuantumCircuit(4)
+
+    qc.rz(-U * dt / 2.0, 0)
+    qc.rz(-U * dt / 2.0, 1)
+    qc.rzz(U * dt / 2.0, 0, 1)
+
+    qc.rz(-U * dt / 2.0, 2)
+    qc.rz(-U * dt / 2.0, 3)
+    qc.rzz(U * dt / 2.0, 2, 3)
+    qc.barrier(label="Interaction")
+
+    qc.append(Gate("exp(+i JΔt/2 X₀Z₁X₂)", 3, []), [0, 1, 2])
+    qc.append(Gate("exp(+i JΔt/2 Y₀Z₁Y₂)", 3, []), [0, 1, 2])
+    qc.append(Gate("exp(+i JΔt/2 X₁Z₂X₃)", 3, []), [1, 2, 3])
+    qc.append(Gate("exp(+i JΔt/2 Y₁Z₂Y₃)", 3, []), [1, 2, 3])
+    qc.barrier(label="Hopping")
+
+    return qc
+
+
 
 def hubbard_time_evolution(
     initial_bitstring: str,
@@ -263,3 +511,23 @@ def sweep_hubbard_probability(
         sv = statevector_after(qc)
         probs.append(basis_probability(sv, target_bitstring))
     return probs
+
+
+def q3_hubbard_report() -> HubbardReport:
+    noninteracting_taus = np.linspace(0, np.pi, 80)
+    strong_taus = np.linspace(0, 2.0, 80)
+
+    return HubbardReport(
+        trotter_circuit=symbolic_one_trotter_step_hubbard(),
+        noninteracting_taus=[float(tau) for tau in noninteracting_taus],
+        noninteracting_site2_probs=sweep_hubbard_probability(
+            "1000", "0010", U=0.0, J=1.0, taus=noninteracting_taus, n_steps=40
+        ),
+        strong_taus=[float(tau) for tau in strong_taus],
+        strong_remain_probs=sweep_hubbard_probability(
+            "1100", "1100", U=10.0, J=1.0, taus=strong_taus, n_steps=80
+        ),
+        strong_transition_probs=sweep_hubbard_probability(
+            "1100", "0011", U=10.0, J=1.0, taus=strong_taus, n_steps=80
+        ),
+    )
