@@ -56,7 +56,7 @@ Each CNOT gate is unitary, and thus the nine-gate chain is unitary. Applying the
 
 ---
 
-## Q2.1
+## Q2.1 Teleportation
 
 **Answer:**
 
@@ -92,7 +92,7 @@ Since each SWAP decomposes into 3 CNOTs, the total number of CNOT gate after dec
 
 ---
 
-## Q2.3
+## Q2.3 Teleportation (Continued)
 
 **Answer:**
 
