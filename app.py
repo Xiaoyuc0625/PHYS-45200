@@ -10,7 +10,9 @@ from qiskit.visualization import plot_histogram
 from backend import (
     DEFAULT_SHOTS,
     bell_param_circuit,
+    bob_marginal_counts,
     ghz10_circuit,
+    measurement_counts,
     q14_protocol_steps,
     q21_teleportation_result,
     q22_long_distance_cnot_result,
@@ -29,7 +31,7 @@ def render_circuit_matplotlib(qc, scale: float = 0.8):
     st.pyplot(fig, clear_figure=True)
 
 
-def render_q14_step(step):
+def render_q14_step(step, shots: int):
     st.markdown(f"### Step {step.number}. {step.title}")
     st.markdown(step.description)
 
@@ -41,18 +43,21 @@ def render_q14_step(step):
         st.markdown("**State vector representation**")
         st.latex(step.statevector_latex)
     with measurement_col:
-        st.markdown("**Measurement after 1024 shots**")
-        fig = plot_histogram(step.measurement_counts)
-        st.pyplot(fig, clear_figure=True)
-        st.table(
-            [
-                {"Outcome": f"|{bitstring}⟩", "Counts": count}
-                for bitstring, count in step.measurement_counts.items()
-            ]
-        )
+        st.markdown("**Measurement**")
+        if st.button(f"Take measurement for Step {step.number}", key=f"q14_measure_{step.number}"):
+            sampled_counts = measurement_counts(step.state_circuit, shots=shots)
+            st.markdown(f"**New measurement after {shots} shots**")
+            fig = plot_histogram(sampled_counts)
+            st.pyplot(fig, clear_figure=True)
+            st.table(
+                [
+                    {"Outcome": f"|{bitstring}⟩", "Counts": count}
+                    for bitstring, count in sampled_counts.items()
+                ]
+            )
 
 
-def render_teleportation_result(result, show_circuit: bool = True):
+def render_teleportation_result(result, shots: int, show_circuit: bool = True):
     st.markdown(f"### {result.title}")
     st.latex(result.input_state_latex)
 
@@ -60,27 +65,32 @@ def render_teleportation_result(result, show_circuit: bool = True):
         st.markdown("**Circuit diagram**")
         render_circuit_matplotlib(result.circuit, scale=0.78)
 
-    count_col, bob_col = st.columns([1, 1])
-    with count_col:
-        st.markdown("**Full 1024-shot measurement data**")
-        fig = plot_histogram(result.full_counts)
-        st.pyplot(fig, clear_figure=True)
-        st.write(result.full_counts)
-    with bob_col:
-        st.markdown("**Bob's marginal result**")
-        fig = plot_histogram(result.bob_counts)
-        st.pyplot(fig, clear_figure=True)
-        st.table(
-            [
-                {
-                    "Bob outcome": f"|{bit}⟩",
-                    "Counts": count,
-                    "Measured probability": f"{count / DEFAULT_SHOTS:.4f}",
-                    "Expected probability": f"{result.expected_bob_probabilities[bit]:.4f}",
-                }
-                for bit, count in result.bob_counts.items()
-            ]
-        )
+    st.markdown("**Measurement**")
+    if st.button(f"Take measurement for {result.title}", key=f"measure_{result.title}"):
+        full_counts = run_circuit(result.circuit, shots=shots)
+        bob_counts = bob_marginal_counts(full_counts)
+
+        count_col, bob_col = st.columns([1, 1])
+        with count_col:
+            st.markdown(f"**Full measurement data after {shots} shots**")
+            fig = plot_histogram(full_counts)
+            st.pyplot(fig, clear_figure=True)
+            st.write(full_counts)
+        with bob_col:
+            st.markdown("**Bob's marginal result**")
+            fig = plot_histogram(bob_counts)
+            st.pyplot(fig, clear_figure=True)
+            st.table(
+                [
+                    {
+                        "Bob outcome": f"|{bit}⟩",
+                        "Counts": count,
+                        "Measured probability": f"{count / shots:.4f}",
+                        "Expected probability": f"{result.expected_bob_probabilities[bit]:.4f}",
+                    }
+                    for bit, count in bob_counts.items()
+                ]
+            )
 
 
 def render_hubbard_page():
@@ -110,7 +120,7 @@ def render_hubbard_page():
     st.latex(
         r"\text{interaction term: }\ "
         r"e^{-i\frac{U\Delta t}{4}Z_0Z_1}\ \text{(Site 1)}"
-        r"\quad"
+        r"\quad "
         r"e^{-i\frac{U\Delta t}{4}Z_2Z_3}\ \text{(Site 2)}"
     )
     st.latex(
@@ -241,7 +251,7 @@ elif preset == "Q1.4 Unitarity and State Recovery":
     for index, step in enumerate(steps):
         if index:
             st.divider()
-        render_q14_step(step)
+        render_q14_step(step, shots=int(shots))
 
     st.markdown("### Analysis")
     st.markdown(
@@ -259,10 +269,10 @@ elif preset == "Q2.1 and Q2.3 Teleportation":
         "The Bell State Preparation and Bell Measurement stages are labeled directly in the circuit barriers."
     )
 
-    render_teleportation_result(q21, show_circuit=True)
+    render_teleportation_result(q21, shots=int(shots), show_circuit=True)
 
     st.divider()
-    render_teleportation_result(q23, show_circuit=True)
+    render_teleportation_result(q23, shots=int(shots), show_circuit=True)
     st.markdown(
         "For Q2.3, Bob should find `|0⟩` with probability 1. "
         "In the ideal simulator, any nonzero `|1⟩` count would come from implementation error rather than hardware noise."

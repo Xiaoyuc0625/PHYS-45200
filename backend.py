@@ -128,12 +128,16 @@ def statevector_latex(circuit: QuantumCircuit) -> str:
     return r"\frac{1}{\sqrt{2}}\left(" + " + ".join(terms) + r"\right)"
 
 
-def measurement_counts_1024(circuit: QuantumCircuit) -> Dict[str, int]:
-    counts = run_circuit(circuit, shots=DEFAULT_SHOTS)
+def measurement_counts(circuit: QuantumCircuit, shots: int = DEFAULT_SHOTS) -> Dict[str, int]:
+    counts = run_circuit(circuit, shots=shots)
     return {
         display_bitstring(bitstring): count
         for bitstring, count in sorted(counts.items())
     }
+
+
+def measurement_counts_1024(circuit: QuantumCircuit) -> Dict[str, int]:
+    return measurement_counts(circuit, shots=DEFAULT_SHOTS)
 
 
 

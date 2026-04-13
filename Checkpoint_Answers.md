@@ -18,52 +18,66 @@ Demonstrate that your UI successfully passes variables to the quantum backend.
 
 **Answer:** 
 
+*Figure: a 2-qubit circuit with measurements.*
+
 ![A 2-qubit circuit with measurements](photos/Two-qubit_circuit_measured.png)
 
-*Figure: a 2-qubit circuit with measurements.*
+*Figure: `Ry(θ)` logic gate illustration.*
 
 ![`Ry(θ)` logic gate](photos/Ry_gate.png)
 
-The screenshot of the circuit and the resulting histogram is shown above. A y-rotation gate `Ry(θ)` to `q0` is applied with the value of `θ` being adjustable, followed by a CNOT (`q0 → q1`) gate. Doing a logic check by sliding the phase to `θ = π` gives the measured quantum state of `|11⟩` with `100%` probability, which is expected according to the logic gate `Ry(θ)`, and it proves that my backend is receiving the slider value correctly.
+The screenshot of the circuit and the resulting histogram is shown above. A y-rotation gate `Ry(θ)` to `q0` is applied with the value of `θ` being adjustable, followed by a CNOT (`q0 → q1`) gate. Doing a logic check by sliding the phase to `θ = π` gives the measured quantum state of `|11⟩` with `100%` probability, which is expected according to the logic gate `Ry(θ)`. If the slider failed to pass `theta = pi` to my backend, the measured output would not collapse to `|11>` with unity.
 
 ---
 
 ## Q1.3: 10-Qubit Visualization
 
-Provide a screenshot of your app rendering a 10-qubit GHZ state circuit:
+**Answer:**
+
+*Figure: A screenshot of my app rendering a 10-qubit GHZ state circuit.*
+
+![GHZ State Circuit](photos/GHZ.png)
+
+The prepared state is:
 
 \[
 |GHZ\rangle = \frac{|0\rangle + |1023\rangle}{\sqrt{2}}
 \]
 
-Here the base-10 representation of the qubit state is given by, for example, `|1023⟩ = |1111111111⟩`.
-
-**Constraint:** The circuit must be rendered visually, not just as text. Use Qiskit’s Matplotlib drawer, for instance. Ensure the image is scaled correctly so all 10 wires are legible on the screen.
+and after measuring every qubits, the histogram has two components at `0000000000` and `1111111111`, with 50% measurement probability of each.
 
 ---
 
 ## Q1.4: Unitarity and State Recovery
 
-Demonstrate the reversibility of quantum operations across all 10 qubits.
+**Answer:**
 
-**Protocol:**
-1. Develop a circuit to prepare the qubits in the state  
+The initial state is prepared as
+
    \[
    2^{-1/2} (|201\rangle + |425\rangle)
    \]
-   where `|201⟩ = |0011001001⟩`.
-2. Apply a chain of 9 two-qubit gates of your choice to all qubits  
-   (e.g. CNOT `q0 → q1`, `q1 → q2`, ..., `q8 → q9`). Report the resulting non-zero amplitudes of the final state vector.
-3. Develop a sequence of gates to reverse the operation and convert the qubits back to the initial state.
+   where `|201⟩ = |0011001001⟩` and `|425⟩ = |0110101001⟩`.
 
-**Deliverable:** Provide the circuit and state vector representation after each step.
+*Figure: Circuit for the `(|0011001001⟩ + |0110101001⟩)` state:*
 
-**Analysis:** Explain how this confirms the unitarity of the gate operation.
+![Initial State Circuit](photos/201_425_state.png)
+
+*Figure: 9 CNOT Chain applied to the state, with resulting state representations and the measurements*
+
+![9 CNOT Chain](photos/9_CNOT_Chain.png)
+
+*Figure: Reversed 9 CNOT Chain applied to recover the initial `(|0011001001⟩ + |0110101001⟩)` state:*
+
+![State Recovery](photos/State_Recovery.png)
+
+Each CNOT gate is unitary, and thus the nine-gate chain is unitary. Applying the same CNOTs in reverse order implements the inverse operation, which returns the quantum state and measurement probabilities to the initial state and thus confirms the unitarity of the gate operation.
 
 ---
 
 ## Q2.1
 
+**Answer:**
 Alice has a qubit in the state
 
 \[
@@ -123,25 +137,6 @@ Set `U = 10` and `J = 1`. Prepare the initial state `|1100⟩` (two electrons at
 **Discussion:** How does the large `U` value affect the tunneling rate? Relate your observations to the physics of a Mott insulator.
 
 
-## Q1.1 Repository and Cloud Deployment
-After you push this project to GitHub and deploy `app.py` on Streamlit Cloud, insert the two URLs here.
-
-- GitHub repository: `...`
-- Live Streamlit app: `...`
-
-## Q1.2 The Parameter Control Loop
-The circuit applies `Ry(theta)` to `q0` and then `CNOT(q0 -> q1)`. When `theta = pi`, the state evolves as
-
-`|00> -> |10> -> |11>`.
-
-Therefore, an ideal histogram with nearly 100% of shots in `11` shows that the slider value really reached the backend. If the slider failed to pass `theta = pi`, the output would not collapse to `|11>` with unit probability.
-
-## Q1.3 10-Qubit Visualization
-Use `ghz10_circuit()` and the Streamlit **10-qubit GHZ** preset. The circuit prepares
-
-`(|0000000000> + |1111111111>) / sqrt(2)`.
-
-The expected measurement histogram has dominant peaks at `0000000000` and `1111111111`, each near 50%.
 
 ## Q1.4 Unitarity and State Recovery
 The initial state is prepared as
