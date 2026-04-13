@@ -23,8 +23,6 @@ from backend import (
 
 st.set_page_config(page_title="P452 Quantum Simulator", layout="wide")
 st.title("P452 Project 1 — Quantum Simulator")
-st.caption("Teleportation and 2-site Fermi–Hubbard demos on a 10-qubit-capable Aer backend")
-
 
 def render_circuit_matplotlib(qc, scale: float = 0.8):
     fig = qc.draw(output="mpl", scale=scale, idle_wires=False)
@@ -119,11 +117,11 @@ def render_hubbard_page():
 
     st.latex(
         r"\text{single-qubit interaction term: }\ "
-        r"e^{+i\frac{U\Delta t}{4}Z_i}\ \text{(Site i)}"
+        r"e^{+i\frac{U\Delta t}{4}Z_i}\ \text{(Qubit i)}"
     )
 
     st.latex(
-        r"\text{ two-qubitinteraction term: }\ "
+        r"\text{ two-qubit interaction term: }\ "
         r"e^{-i\frac{U\Delta t}{4}Z_0Z_1}\ \text{(Site 1)}"
         r"\quad "
         r"e^{-i\frac{U\Delta t}{4}Z_2Z_3}\ \text{(Site 2)}"
@@ -161,9 +159,6 @@ def render_hubbard_page():
             {"Quantity": "Time at maximum", "Value": f"{report.noninteracting_taus[best_idx]:.4f}"},
         ]
     )
-    st.markdown(
-        "This answers Q3.2: the probability rises to nearly one, showing full coherent transfer in the non-interacting limit."
-    )
 
     st.markdown("### Q3.3 Strong interaction and doublon suppression")
     st.markdown(
@@ -186,10 +181,6 @@ def render_hubbard_page():
             {"Quantity": "Largest plotted transition probability", "Value": f"{report.strong_transition_probs[transition_max_idx]:.4f}"},
             {"Quantity": "Remain probability at same time", "Value": f"{report.strong_remain_probs[transition_max_idx]:.4f}"},
         ]
-    )
-    st.markdown(
-        "This answers Q3.3: large `U` makes doublon motion energetically costly, so tunneling is suppressed. "
-        "The system mostly remains in `|1100>`, which is the two-site signature of Mott-insulating behavior."
     )
 
 
@@ -259,30 +250,16 @@ elif preset == "Q1.4 Unitarity and State Recovery":
             st.divider()
         render_q14_step(step, shots=int(shots))
 
-    st.markdown("### Analysis")
-    st.markdown(
-        "Each CNOT gate is unitary, so the nine-gate chain is unitary. "
-        "Applying the same CNOTs in reverse order implements the inverse operation, "
-        "which returns the non-zero amplitudes and measurement probabilities to the initial state."
-    )
-
 elif preset == "Q2.1 and Q2.3 Teleportation":
     q21 = q21_teleportation_result()
     q23 = q23_teleportation_zero_result()
 
     st.subheader("Phase 2: Teleportation")
-    st.markdown(
-        "The Bell State Preparation and Bell Measurement stages are labeled directly in the circuit barriers."
-    )
 
     render_teleportation_result(q21, shots=int(shots), show_circuit=True)
 
     st.divider()
     render_teleportation_result(q23, shots=int(shots), show_circuit=True)
-    st.markdown(
-        "For Q2.3, Bob should find `|0⟩` with probability 1. "
-        "In the ideal simulator, any nonzero `|1⟩` count would come from implementation error rather than hardware noise."
-    )
 
 elif preset == "Q2.2 Long-Distance CNOT":
     result = q22_long_distance_cnot_result()
