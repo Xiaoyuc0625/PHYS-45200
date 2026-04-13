@@ -328,16 +328,16 @@ def teleportation_circuit(alpha: complex, beta: complex, measure_alice: bool = T
 
     qc = QuantumCircuit(3, 3)
 
-    qc.initialize([alpha, beta], 0)
     qc.barrier(label="Input state")
+    qc.initialize([alpha, beta], 0)
 
+    qc.barrier(label="Bell State Preparation")
     qc.h(1)
     qc.cx(1, 2)
-    qc.barrier(label="Bell State Preparation")
 
+    qc.barrier(label="Bell Measurement")
     qc.cx(0, 1)
     qc.h(0)
-    qc.barrier(label="Bell Measurement")
 
     if measure_alice:
         qc.measure(0, 0)
@@ -428,12 +428,13 @@ def one_trotter_step_hubbard(U: float, J: float, dt: float, measure: bool = Fals
     qc = QuantumCircuit(4, 4 if measure else 0)
 
     # Interaction terms on each site: (q0,q1) and (q2,q3)
+    qc.barrier(label="Interaction")
     interaction_term(qc, 0, 1, U, dt)
     interaction_term(qc, 2, 3, U, dt)
-    qc.barrier(label="Interaction")
 
     # Hopping terms for spin-up (q0 <-> q2) and spin-down (q1 <-> q3).
     # For this compact educational circuit we expose the required Z-string explicitly.
+    qc.barrier(label="Hopping")
     qc.cz(1, 2)
     hopping_term(qc, 0, 2, J, dt)
     qc.cz(1, 2)
@@ -441,7 +442,6 @@ def one_trotter_step_hubbard(U: float, J: float, dt: float, measure: bool = Fals
     qc.cz(0, 3)
     hopping_term(qc, 1, 3, J, dt)
     qc.cz(0, 3)
-    qc.barrier(label="Hopping")
 
     if measure:
         qc.measure(range(4), range(4))
@@ -454,6 +454,7 @@ def symbolic_one_trotter_step_hubbard() -> QuantumCircuit:
     dt = Parameter("Δt")
     qc = QuantumCircuit(4)
 
+    qc.barrier(label="Interaction")
     qc.rz(-U * dt / 2.0, 0)
     qc.rz(-U * dt / 2.0, 1)
     qc.rzz(U * dt / 2.0, 0, 1)
@@ -461,13 +462,12 @@ def symbolic_one_trotter_step_hubbard() -> QuantumCircuit:
     qc.rz(-U * dt / 2.0, 2)
     qc.rz(-U * dt / 2.0, 3)
     qc.rzz(U * dt / 2.0, 2, 3)
-    qc.barrier(label="Interaction")
 
+    qc.barrier(label="Hopping")
     qc.append(Gate("exp(+i JΔt/2 X₀Z₁X₂)", 3, []), [0, 1, 2])
     qc.append(Gate("exp(+i JΔt/2 Y₀Z₁Y₂)", 3, []), [0, 1, 2])
     qc.append(Gate("exp(+i JΔt/2 X₁Z₂X₃)", 3, []), [1, 2, 3])
     qc.append(Gate("exp(+i JΔt/2 Y₁Z₂Y₃)", 3, []), [1, 2, 3])
-    qc.barrier(label="Hopping")
 
     return qc
 

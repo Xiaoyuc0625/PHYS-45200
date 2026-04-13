@@ -118,11 +118,17 @@ def render_hubbard_page():
     render_circuit_matplotlib(report.trotter_circuit, scale=0.9)
 
     st.latex(
-        r"\text{interaction term: }\ "
+        r"\text{single-qubit interaction term: }\ "
+        r"e^{+i\frac{U\Delta t}{4}Z_i}\ \text{(Site i)}"
+    )
+
+    st.latex(
+        r"\text{ two-qubitinteraction term: }\ "
         r"e^{-i\frac{U\Delta t}{4}Z_0Z_1}\ \text{(Site 1)}"
         r"\quad "
         r"e^{-i\frac{U\Delta t}{4}Z_2Z_3}\ \text{(Site 2)}"
     )
+
     st.latex(
         r"\text{spin-up hopping: }\ "
         r"e^{+i\frac{J\Delta t}{2}X_0Z_1X_2}"
