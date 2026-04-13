@@ -17,8 +17,9 @@ from backend import (
     q21_teleportation_result,
     q22_long_distance_cnot_result,
     q23_teleportation_zero_result,
-    q3_hubbard_report,
     run_circuit,
+    sweep_hubbard_probability,
+    symbolic_one_trotter_step_hubbard,
 )
 
 st.set_page_config(page_title="P452 Quantum Simulator", layout="wide")
@@ -92,8 +93,6 @@ def render_teleportation_result(result, shots: int, show_circuit: bool = True):
 
 
 def render_hubbard_page():
-    report = q3_hubbard_report()
-
     st.subheader("Q3 Fermi-Hubbard Model")
     st.markdown("Two lattice sites are encoded with four qubits: one spin-up and one spin-down mode per site.")
     st.table(
@@ -113,7 +112,7 @@ def render_hubbard_page():
         "The interaction barrier contains the on-site U terms. "
         "The hopping barrier includes the Jordan-Wigner anti-commutation strings in the operator labels."
     )
-    render_circuit_matplotlib(report.trotter_circuit, scale=0.9)
+    render_circuit_matplotlib(symbolic_one_trotter_step_hubbard(), scale=0.9)
 
     st.latex(
         r"\text{single-qubit interaction term: }\ "
@@ -139,49 +138,57 @@ def render_hubbard_page():
     )
 
     st.markdown("### Q3.2 Non-interacting dynamics")
-    st.markdown(
-        "Set `U = 0`, `J = 1`, and start from `|1000>`. "
-        "With no on-site repulsion, the spin-up particle coherently tunnels from site 1 to site 2."
-    )
-    q32_df = pd.DataFrame(
-        {
-            "t": report.noninteracting_taus,
-            "P(|0010>)": report.noninteracting_site2_probs,
-        }
-    )
-    st.line_chart(q32_df, x="t", y="P(|0010>)")
-    best_idx = int(np.argmax(report.noninteracting_site2_probs))
-    st.table(
-        [
-            {"Quantity": "Initial state", "Value": "|1000>"},
-            {"Quantity": "Target state", "Value": "|0010>"},
-            {"Quantity": "Maximum plotted probability", "Value": f"{report.noninteracting_site2_probs[best_idx]:.4f}"},
-            {"Quantity": "Time at maximum", "Value": f"{report.noninteracting_taus[best_idx]:.4f}"},
-        ]
-    )
+    q32_u, q32_j = st.columns(2)
+    with q32_u:
+        q32_U = st.number_input("Q3.2 U", value=0.0, step=0.5, key="q32_u")
+    with q32_j:
+        q32_J = st.number_input("Q3.2 J", value=1.0, step=0.1, key="q32_j")
+    st.markdown("**One Trotter-step block used in the sweep**")
+    render_circuit_matplotlib(symbolic_one_trotter_step_hubbard(), scale=0.9)
+    if st.button("Run Q3.2 circuit and plot", key="run_q32"):
+        q32_t = np.linspace(0, np.pi, 80)
+        q32_probs = sweep_hubbard_probability("1000", "0010", U=q32_U, J=q32_J, taus=q32_t, n_steps=40)
+        q32_df = pd.DataFrame({"t": q32_t, "P(|0010>)": q32_probs})
+        st.line_chart(q32_df, x="t", y="P(|0010>)")
+        best_idx = int(np.argmax(q32_probs))
+        st.table(
+            [
+                {"Quantity": "Initial state", "Value": "|1000>"},
+                {"Quantity": "Target state", "Value": "|0010>"},
+                {"Quantity": "Maximum plotted probability", "Value": f"{q32_probs[best_idx]:.4f}"},
+                {"Quantity": "Time at maximum", "Value": f"{q32_t[best_idx]:.4f}"},
+            ]
+        )
 
     st.markdown("### Q3.3 Strong interaction and doublon suppression")
-    st.markdown(
-        "Set `U = 10`, `J = 1`, and start from the doublon state `|1100>`. "
-        "Compare remaining at site 1 with transitioning to the site-2 doublon state `|0011>`."
-    )
-    q33_df = pd.DataFrame(
-        {
-            "t": report.strong_taus,
-            "P(|1100>) remain": report.strong_remain_probs,
-            "P(|0011>) transition": report.strong_transition_probs,
-        }
-    )
-    st.line_chart(q33_df, x="t", y=["P(|1100>) remain", "P(|0011>) transition"])
-    transition_max_idx = int(np.argmax(report.strong_transition_probs))
-    st.table(
-        [
-            {"Quantity": "Initial doublon", "Value": "|1100>"},
-            {"Quantity": "Site-2 doublon", "Value": "|0011>"},
-            {"Quantity": "Largest plotted transition probability", "Value": f"{report.strong_transition_probs[transition_max_idx]:.4f}"},
-            {"Quantity": "Remain probability at same time", "Value": f"{report.strong_remain_probs[transition_max_idx]:.4f}"},
-        ]
-    )
+    q33_u, q33_j = st.columns(2)
+    with q33_u:
+        q33_U = st.number_input("Q3.3 U", value=10.0, step=0.5, key="q33_u")
+    with q33_j:
+        q33_J = st.number_input("Q3.3 J", value=1.0, step=0.1, key="q33_j")
+    st.markdown("**One Trotter-step block used in the sweep**")
+    render_circuit_matplotlib(symbolic_one_trotter_step_hubbard(), scale=0.9)
+    if st.button("Run Q3.3 circuit and plot", key="run_q33"):
+        q33_t = np.linspace(0, 2.0, 80)
+        q33_remain = sweep_hubbard_probability("1100", "1100", U=q33_U, J=q33_J, taus=q33_t, n_steps=80)
+        q33_transition = sweep_hubbard_probability("1100", "0011", U=q33_U, J=q33_J, taus=q33_t, n_steps=80)
+        q33_df = pd.DataFrame(
+            {
+                "t": q33_t,
+                "P(|1100>) remain": q33_remain,
+                "P(|0011>) transition": q33_transition,
+            }
+        )
+        st.line_chart(q33_df, x="t", y=["P(|1100>) remain", "P(|0011>) transition"])
+        transition_max_idx = int(np.argmax(q33_transition))
+        st.table(
+            [
+                {"Quantity": "Initial doublon", "Value": "|1100>"},
+                {"Quantity": "Site-2 doublon", "Value": "|0011>"},
+                {"Quantity": "Largest plotted transition probability", "Value": f"{q33_transition[transition_max_idx]:.4f}"},
+                {"Quantity": "Remain probability at same time", "Value": f"{q33_remain[transition_max_idx]:.4f}"},
+            ]
+        )
 
 
 preset = st.sidebar.selectbox(
