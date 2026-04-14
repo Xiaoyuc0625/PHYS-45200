@@ -74,7 +74,7 @@ A screenshot of 3-qubit teleportation circuit is shown above. There are three st
 
 ---
 
-## Q2.2
+## Q2.2 Long Distance CNOT
 
 **Answer:**
 
