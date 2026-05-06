@@ -1,0 +1,25 @@
+Sz = 0 sector report for 2x2 square lattice (N=4)
+Hamiltonian: H = J sum_<ij> S_i.S_j + H sum_i S_i^z with J = 1
+Field H/J = 0.000000
+Sector constraint: Nup = 2, Sz_total = 0
+Basis dimension: 6
+
+Basis states in QuSpin order (bit 1 = spin up, listed as q0 q1 ...):
+  0: |0011>
+  1: |0101>
+  2: |1001>
+  3: |0110>
+  4: |1010>
+  5: |1100>
+
+Hamiltonian matrix in the Sz = 0 basis:
+[[ 0.  0.  1.  1.  0.  0.]
+ [ 0.  0.  1.  1.  0.  0.]
+ [ 1.  1. -2.  0.  1.  1.]
+ [ 1.  1.  0. -2.  1.  1.]
+ [ 0.  0.  1.  1.  0.  0.]
+ [ 0.  0.  1.  1.  0.  0.]]
+
+Ground-state energy: -4.000000000000
+Ground-state coefficients in the same basis order:
+[-0.288675 -0.288675  0.57735   0.57735  -0.288675 -0.288675]

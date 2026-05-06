@@ -1,0 +1,11 @@
+2x2 periodic square-lattice Heisenberg validation using QuSpin
+Hamiltonian: H = J sum_<ij> S_i.S_j + H sum_i S_i^z with J = 1 and H = 0
+The analytic spectrum uses the same 2x2 torus bond convention as the code.
+
+Maximum absolute difference: 4.483e-16
+
+Numerical eigenvalues:
+-4.000000 -2.000000 -2.000000 -2.000000 -0.000000 -0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  2.000000  2.000000  2.000000  2.000000  2.000000
+
+Analytic eigenvalues:
+-4.000000 -2.000000 -2.000000 -2.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000  2.000000  2.000000  2.000000  2.000000  2.000000

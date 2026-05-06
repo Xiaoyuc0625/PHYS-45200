@@ -1,0 +1,17 @@
+Magnetization staircase for 2x2 square lattice
+General finite-field ground state is
+E_GS(H,J) = min_M [ J E0(M; J=1, H=0) + H M ]
+with J = 1.000000
+Positive H favors negative Sz_total with this sign convention.
+
+Sector exchange-only ground energies E0(M; J=1, H=0):
+Sz_total= -2.0  n_up= 0  E0= 2.000000000000
+Sz_total= -1.0  n_up= 1  E0=-2.000000000000
+Sz_total=  0.0  n_up= 2  E0=-4.000000000000
+Sz_total=  1.0  n_up= 3  E0=-2.000000000000
+Sz_total=  2.0  n_up= 4  E0= 2.000000000000
+
+Magnetization plateaus:
+H in [0.000000000000, 2.000000000000) -> Sz_total = 0.0 -> Mz/N = 0.000000
+H in [2.000000000000, 4.000000000000) -> Sz_total = -1.0 -> Mz/N = -0.250000
+H in [4.000000000000, infinity) -> Sz_total = -2.0 -> Mz/N = -0.500000

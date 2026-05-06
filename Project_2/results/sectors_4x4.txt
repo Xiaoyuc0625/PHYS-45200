@@ -1,0 +1,18 @@
+Sector dimensions for 4x4 (N=16) using QuSpin Nup blocks
+n_up= 0  Sz_total= -8.0  dim=1
+n_up= 1  Sz_total= -7.0  dim=16
+n_up= 2  Sz_total= -6.0  dim=120
+n_up= 3  Sz_total= -5.0  dim=560
+n_up= 4  Sz_total= -4.0  dim=1820
+n_up= 5  Sz_total= -3.0  dim=4368
+n_up= 6  Sz_total= -2.0  dim=8008
+n_up= 7  Sz_total= -1.0  dim=11440
+n_up= 8  Sz_total=  0.0  dim=12870
+n_up= 9  Sz_total=  1.0  dim=11440
+n_up=10  Sz_total=  2.0  dim=8008
+n_up=11  Sz_total=  3.0  dim=4368
+n_up=12  Sz_total=  4.0  dim=1820
+n_up=13  Sz_total=  5.0  dim=560
+n_up=14  Sz_total=  6.0  dim=120
+n_up=15  Sz_total=  7.0  dim=16
+n_up=16  Sz_total=  8.0  dim=1

@@ -1,0 +1,5 @@
+Restricted 6x6 QuSpin calculation
+Allowed n_up sectors: [0, 1, 2, 3, 4]
+For the Hamiltonian H = J sum S_i.S_j + H sum S_i^z, positive H favors negative Sz_total.
+This is exact within the retained sectors only.
+The full 6x6 exact diagonalization remains too large without stronger symmetry reduction.

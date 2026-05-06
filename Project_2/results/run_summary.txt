@@ -1,0 +1,10 @@
+Project 2 Heisenberg-model QuSpin run complete.
+Results directory: /Users/xiaoyuchen/Documents/GitHub/PHYS-45200/Project_2/results
+Saved Sz=0 sector report: /Users/xiaoyuchen/Documents/GitHub/PHYS-45200/Project_2/results/sz0_sector_2x2.txt
+Sz=0 ground-state energy: -4.000000000000
+General 4x4 ground-state energy at J=1.000000, H=3.200000: -18.866198262509
+Corresponding Sz_total=-5.0, Mz/N=-0.312500
+Saved staircase report: /Users/xiaoyuchen/Documents/GitHub/PHYS-45200/Project_2/results/staircase_4x4.txt
+Saved staircase plot: /Users/xiaoyuchen/Documents/GitHub/PHYS-45200/Project_2/results/staircase_4x4.png
+Completed: 2x2 validation and 4x4 full exact scan.
+Completed: restricted 6x6 scan with spin-flip cutoff 4.

@@ -1,0 +1,35 @@
+Magnetization staircase for 4x4 square lattice
+General finite-field ground state is
+E_GS(H,J) = min_M [ J E0(M; J=1, H=0) + H M ]
+with J = 1.000000
+Positive H favors negative Sz_total with this sign convention.
+
+Sector exchange-only ground energies E0(M; J=1, H=0):
+Sz_total= -8.0  n_up= 0  E0= 8.000000000000
+Sz_total= -7.0  n_up= 1  E0= 4.000000000000
+Sz_total= -6.0  n_up= 2  E0= 0.354248688935
+Sz_total= -5.0  n_up= 3  E0=-2.866198262509
+Sz_total= -4.0  n_up= 4  E0=-5.617279503297
+Sz_total= -3.0  n_up= 5  E0=-7.836537573480
+Sz_total= -2.0  n_up= 6  E0=-9.517687983937
+Sz_total= -1.0  n_up= 7  E0=-10.649884872663
+Sz_total=  0.0  n_up= 8  E0=-11.228483208429
+Sz_total=  1.0  n_up= 9  E0=-10.649884872663
+Sz_total=  2.0  n_up=10  E0=-9.517687983937
+Sz_total=  3.0  n_up=11  E0=-7.836537573480
+Sz_total=  4.0  n_up=12  E0=-5.617279503297
+Sz_total=  5.0  n_up=13  E0=-2.866198262509
+Sz_total=  6.0  n_up=14  E0= 0.354248688935
+Sz_total=  7.0  n_up=15  E0= 4.000000000000
+Sz_total=  8.0  n_up=16  E0= 8.000000000000
+
+Magnetization plateaus:
+H in [0.000000000000, 0.578598335765) -> Sz_total = 0.0 -> Mz/N = 0.000000
+H in [0.578598335765, 1.132196888726) -> Sz_total = -1.0 -> Mz/N = -0.062500
+H in [1.132196888726, 1.681150410457) -> Sz_total = -2.0 -> Mz/N = -0.125000
+H in [1.681150410457, 2.219258070183) -> Sz_total = -3.0 -> Mz/N = -0.187500
+H in [2.219258070183, 2.751081240788) -> Sz_total = -4.0 -> Mz/N = -0.250000
+H in [2.751081240788, 3.220446951444) -> Sz_total = -5.0 -> Mz/N = -0.312500
+H in [3.220446951444, 3.645751311065) -> Sz_total = -6.0 -> Mz/N = -0.375000
+H in [3.645751311065, 4.000000000000) -> Sz_total = -7.0 -> Mz/N = -0.437500
+H in [4.000000000000, infinity) -> Sz_total = -8.0 -> Mz/N = -0.500000
